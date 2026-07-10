@@ -19,6 +19,13 @@ from .complexity_router import ComplexityRouter, RouteDecision
 from .local_checker import LocalChecker, LocalCheckResult, LocalFinding
 from .arsenal_trace import TraceEngine, TraceConfig, TraceResult, ReasoningStep, ReasoningChain
 from .empirical_verifier import EmpiricalVerifier, VerificationResult
+from .calibrate import (
+    calibrate,
+    sample_codebase,
+    classify_samples,
+    analyze_consistency,
+    recommend_pairing,
+)
 
 __all__ = [
     "TrustEngine",
@@ -43,4 +50,9 @@ __all__ = [
     "ReasoningChain",
     "EmpiricalVerifier",
     "VerificationResult",
+    "calibrate",
+    "sample_codebase",
+    "classify_samples",
+    "analyze_consistency",
+    "recommend_pairing",
 ]

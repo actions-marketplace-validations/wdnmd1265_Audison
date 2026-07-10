@@ -134,6 +134,12 @@ def main():
     p_diagnose.add_argument("--models", "-m", required=True, help="逗号分隔的模型列表")
     p_diagnose.add_argument("--output", "-o", default=None, help="保存报告为JSON文件")
 
+    # ── calibrate ──
+    p_calibrate = sub.add_parser("calibrate", help="Analyze codebase patterns and recommend optimal audit strategy")
+    p_calibrate.add_argument("dir", nargs="?", default=None, help="Target directory to scan (default: current directory)")
+    p_calibrate.add_argument("--sample", "-n", type=int, default=30, help="Number of files to sample (default: 30)")
+    p_calibrate.add_argument("--models", "-m", nargs=2, default=None, help="Model pair for consistency analysis (default: gpt-4o claude-sonnet-4-20250514)")
+
     args = parser.parse_args()
 
     # ── 命令分发 ──
@@ -148,6 +154,7 @@ def main():
         "audit": ("cmd_audit", "do_audit"),
         "scan": ("cmd_scan", "do_scan"),
         "diagnose": ("cmd_diagnose", "cmd_diagnose"),
+        "calibrate": ("cmd_calibrate", "do_calibrate"),
     }
 
     if args.command in dispatch:
