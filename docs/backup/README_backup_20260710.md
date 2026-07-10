@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Two AIs argue. One verdict.</strong>
+  <strong>AI wrote the code. Audison finds the bugs your AI reviewer missed.</strong>
 </p>
 
 <p align="center">
@@ -14,36 +14,25 @@
 
 ---
 
-**Real numbers, not benchmarks.** Audison audited [httpx v0.28.1](https://github.com/encode/httpx) (14,000+ Stars) across 10 security-critical functions using **EmpiricalVerifier** (AST static analysis — a utility distinct from Audison's multi-model adversarial audit).
+**Real numbers, not benchmarks.** Audison audited [httpx v0.28.1](https://github.com/encode/httpx) (GitHub 14,000+ Stars) across 10 security-critical functions.
 
-| CONFIRMED | REFUTED | False Positive |
-|:---------:|:-------:|:--------------:|
-| 4 | 4 | 1¹ |
+| CONFIRMED | REFUTED | UNCERTAIN |
+|:---------:|:-------:|:---------:|
+| 5 | 4 | 1 |
 
-> ¹ `_get_client_nonce` was an AST false positive (indirect variable assignment untraceable), excluded after manual review. One UNCERTAIN excluded: `_build_auth_header` same-name ambiguity, a tool limitation, not code uncertainty. [Full report →](reports/real_world_audit.md)
+[See the full report →](reports/real_world_audit.md)
 
 ```bash
 pip install audison && audison scan .
 ```
 
-<details>
-<summary>Example output: scanning Audison itself → 0 CONFIRMED, 43 REFUTED [full output →](docs/terminal_output.txt)</summary>
-
-```
- Audison Scan — 维度4 数据完整性实证验证
- 扫描目录  D:\HANAKO\audison
- 发现文件  104 个源文件 / 审查函数  83 个
- CONFIRMED     0  (真阳性)
- REFUTED      43  (假阳性)
- UNCERTAIN    40  (需人工复核)
-```
-</details>
-
 ---
 
 ## The Problem
 
-A single model can't discover its own blind spots. Same training data, same biases — one person grading their own homework. Audison makes two models argue: one audits, another attacks from 5 adversary perspectives, a third cross-validates. Consensus comes from **surviving attack**, not from agreeing to agree.
+A single model cannot discover its own blind spots. Your AI reviewer reads its own output with the same training data, the same biases, the same weak points. It's one person grading their own homework.
+
+Audison makes two models argue — one audits, another attacks from adversary perspectives, and a third cross-validates. Consensus comes from surviving attack, not from agreeing to agree.
 
 ---
 
@@ -51,7 +40,7 @@ A single model can't discover its own blind spots. Same training data, same bias
 
 Same AI-generated auth code, four reviewers:
 
-| Finding | Standard AI Review | CodeQL | Shannon | Audison |
+| Finding | Standard AI Review | CodeQL / SAST | Shannon | Audison |
 |---|---|---|---|---|
 | SQL injection in login | Missed | Missed | Missed | Found |
 | Hardcoded JWT secret | Warning | Missed | Missed | Found |
@@ -66,19 +55,21 @@ Same AI-generated auth code, four reviewers:
 Input Code
     │
     ▼
-[ Brain One ]  ──── Primary audit (security, correctness, logic)
-  (GPT-4o)
+[ Brain One ]  ──── Primary audit: identifies issues across security,
+  (GPT-4o)           correctness, and logic dimensions.
     │
     ▼
-[ Opponent Brain ] ──── 5 adversarial perspectives attack findings
-  (Claude Sonnet)
+[ Opponent Brain ] ──── 5 adversarial perspectives attack the output.
+  (Claude Sonnet)        Confirms or disputes each finding.
     │
     ▼
-[ Brain Two ]  ──── Cross-verification: consensus → confirmed,
-                     disagreement → UNCERTAIN (not hidden)
+[ Brain Two ]  ──── Cross-verification. Consensus → confirmed.
+                     Disagreement → UNCERTAIN, not hidden.
     │
     ▼
-[ TrustReport ]  ──── Verdict + Confidence + Findings + SHA-256 chain
+[ TrustReport ]  ──── Verdict (pass / review / reject) +
+                       Confidence score + Findings +
+                       SHA-256 evidence chain + Timestamp
 ```
 
 ---
@@ -86,13 +77,22 @@ Input Code
 ## Quick Start
 
 ```bash
+# 1. Install
 pip install audison
-audison scan .              # EmpiricalVerifier: AST static analysis
-audison audit .             # Full multi-model adversarial audit
 
-# Set API keys (two providers recommended for cross-arbitration):
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
+# 2. Scan
+audison scan .
+
+# 3. Read the report
+# Terminal output with color-coded findings, or:
+audison scan . --output report.md
+```
+
+Set one API key — or two for cross-provider arbitration (recommended):
+
+```bash
+export OPENAI_API_KEY="sk-..."         # Required
+export ANTHROPIC_API_KEY="sk-ant-..."   # Optional, for stronger audits
 ```
 
 ---

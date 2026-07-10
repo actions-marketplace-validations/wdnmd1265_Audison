@@ -35,7 +35,6 @@ body:
       description: Where would this feature fit?
       options:
         - label: TrustEngine (standalone audit layer)
-        - label: FlowArchitect (full framework)
         - label: CLI
         - label: API
         - label: MCP Server

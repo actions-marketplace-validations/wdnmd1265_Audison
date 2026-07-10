@@ -29,6 +29,7 @@ class Finding(BaseModel):
     description: str = Field(..., description="问题描述")
     source: str = Field(..., description="发现来源：arbiter_1 / arbiter_2 / opponent")
     evidence: Optional[str] = Field(None, description="具体证据")
+    verification: Optional[Dict[str, Any]] = Field(None, description="实证验证结果（仅维度 4 data_integrity）")
 
 
 class Risk(BaseModel):
@@ -115,6 +116,9 @@ class TrustReport(BaseModel):
     # 4 层模型路由（Phase 3 P2：ComplexityRouter）
     route_tier: int = Field(0, ge=0, le=4, description="路由层级 (0=未启用路由, 1-4=对应层级)")
     route_reason: str = Field("", description="路由到当前层级的原因")
+
+    # 代码截断警告（Phase 3 P3：Truncation Awareness）
+    truncation_warnings: List[str] = Field(default_factory=list, description="审查过程中发生的代码截断警告，影响审查完整度")
 
     # 内部缓存（不参与序列化）
     _divergence_cache: Optional[Dict[str, Any]] = None

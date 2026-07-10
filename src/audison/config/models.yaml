@@ -45,7 +45,7 @@ providers:
   # 官网：https://platform.deepseek.com/
   # 支持 OpenAI 兼容接口
   deepseek:
-    api_key: "${DEEPSEEK_API_KEY}"
+    api_key: "${OPENAI_API_KEY}"
     base_url: "https://api.deepseek.com/v1"
     timeout: 30
     max_retries: 3

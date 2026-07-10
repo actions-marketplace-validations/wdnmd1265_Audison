@@ -8,7 +8,7 @@ Before running:
 """
 
 import asyncio
-from audison import FlowArchitect
+from audison.engine import TrustEngine
 
 
 async def single_key_example():
@@ -16,22 +16,21 @@ async def single_key_example():
     print("=== Single Key Example ===")
     print("One OpenAI key is enough. brain2 auto-selects gpt-4o-mini.")
 
-    architect = FlowArchitect(config={
-        "brain1": "gpt-4o",
-        # "brain2" is optional — auto-resolved to gpt-4o-mini
-    })
-    print("Framework initialized")
+    engine = TrustEngine(brain1="gpt-4o")
+    print(f"TrustEngine initialized with brain1=gpt-4o")
 
-    user_input = "Design a user management system"
-    print(f"User input: {user_input}")
+    requirement = "Design a user management system"
+    ai_output = """
+def login(username, password):
+    query = "SELECT * FROM users WHERE name='" + username + "'"
+    return db.execute(query)
+"""
 
-    print("\nStarting workflow...")
-    result = await architect.run(user_input)
+    print(f"\nAuditing AI output...")
+    report = await engine.audit(requirement=requirement, ai_output=ai_output)
 
-    print("\n=== Result ===")
-    print(f"Status: {result['status']}")
-    if result['status'] == 'success':
-        print(f"Quality score: {result['audit_result'].get('score', 'N/A')}/100")
+    print(f"\n=== Result ===")
+    print(report.summary())
 
 
 async def dual_key_example():
@@ -39,127 +38,36 @@ async def dual_key_example():
     print("=== Dual Key Example ===")
     print("OpenAI + Anthropic. Cross-provider arbitration = best quality.")
 
-    architect = FlowArchitect(config={
-        "brain1": "gpt-4o",
-        "brain2": "claude-3-5-sonnet-20241022",
-    })
-    print("Framework initialized")
+    engine = TrustEngine(brain1="gpt-4o", brain2="claude-3-5-sonnet-20241022")
+    print("TrustEngine initialized with cross-provider models")
 
-    user_input = "Design a user management system"
-    print(f"User input: {user_input}")
+    requirement = "Design a user management system"
+    ai_output = """
+def login(username, password):
+    query = "SELECT * FROM users WHERE name='" + username + "'"
+    return db.execute(query)
+"""
 
-    print("\nStarting workflow...")
-    result = await architect.run(user_input)
+    print(f"\nAuditing AI output...")
+    report = await engine.audit(requirement=requirement, ai_output=ai_output)
 
-    print("\n=== Result ===")
-    print(f"Status: {result['status']}")
-    if result['status'] == 'success':
-        print(f"Quality score: {result['audit_result'].get('score', 'N/A')}/100")
-
-
-async def basic_example():
-    """Basic workflow example"""
-    print("=== Basic Example ===")
-
-    # Brain #2 is mandatory and must use a different model
-    architect = FlowArchitect(config={
-        "brain1": "gpt-4o",
-        "brain2": "claude-3-5-sonnet-20241022",
-    })
-    print("Framework initialized")
-
-    user_input = "Design a user management system"
-    print(f"User input: {user_input}")
-
-    # Three phases run automatically: planning -> approval -> execution + arbitration
-    print("\nStarting workflow...")
-    result = await architect.run(user_input)
-
-    print("\n=== Result ===")
-    print(f"Status: {result['status']}")
-
-    if result['status'] == 'success':
-        audit = result.get('audit_result', {})
-        score = audit.get('score', 'N/A')
-        print(f"Quality score: {score}/100")
-    elif result['status'] == 'needs_revision':
-        print("Quality check failed. Suggestions:")
-        for suggestion in result.get('revision_suggestions', []):
-            print(f"  - {suggestion}")
+    print(f"\n=== Result ===")
+    print(report.summary())
 
 
-async def expert_team_example():
-    """Using a pre-configured expert team"""
-    print("\n=== Expert Team Example ===")
+async def cli_example():
+    """CLI usage example"""
+    print("=== CLI Example ===")
+    print("""
+# One-liner audit:
+audison audit login.py -r "Check for SQL injection and auth bypass"
 
-    architect = FlowArchitect(config={
-        "brain1": "gpt-4o",
-        "brain2": "claude-3-5-sonnet-20241022",
-    })
-    print("Framework initialized")
+# With HTML export:
+audison audit login.py -r "Security audit" --html -o report.html
 
-    team_name = "web_development"
-    user_input = "Build a blog platform"
-    print(f"Team: {team_name}")
-    print(f"User input: {user_input}")
-
-    print("\nStarting workflow...")
-    result = await architect.run_with_team(team_name, user_input)
-
-    print("\n=== Result ===")
-    print(f"Status: {result['status']}")
-
-
-async def custom_blueprint_example():
-    """Custom blueprint example (no AI calls, just data structure)"""
-    print("\n=== Custom Blueprint Example ===")
-
-    from audison.core.architect import Blueprint
-
-    blueprint = Blueprint(
-        task_id="custom_001",
-        description="Data analysis pipeline",
-        steps=[
-            {
-                "name": "Data collection",
-                "expert": "evaluator",
-                "task": "Collect and organize data sources",
-                "prompt": "As an evaluator, analyze data requirements and identify sources...",
-                "complexity": "medium",
-            },
-            {
-                "name": "Data cleaning",
-                "expert": "programmer",
-                "task": "Clean and preprocess data",
-                "prompt": "As a programmer, write data cleaning scripts...",
-                "complexity": "high",
-            },
-            {
-                "name": "Data analysis",
-                "expert": "creative",
-                "task": "Perform deep data analysis",
-                "prompt": "As a creative analyst, discover valuable insights from data...",
-                "complexity": "high",
-            },
-            {
-                "name": "Report generation",
-                "expert": "reviewer",
-                "task": "Generate analysis report",
-                "prompt": "As a reviewer, synthesize results into a final report...",
-                "complexity": "medium",
-            },
-        ],
-        experts=["evaluator", "programmer", "creative", "reviewer"],
-        estimated_tokens=8000,
-        status="draft",
-    )
-
-    print(f"Blueprint ID: {blueprint.task_id}")
-    print(f"Description: {blueprint.description}")
-    print(f"Steps: {len(blueprint.steps)}")
-
-    for i, step in enumerate(blueprint.steps, 1):
-        print(f"  {i}. {step['name']} ({step['expert']}, complexity: {step['complexity']})")
+# Pipe from stdin:
+cat generated_code.py | audison audit -r "Validate correctness"
+""")
 
 
 async def main():
@@ -167,9 +75,8 @@ async def main():
     print("=" * 50)
 
     try:
-        await basic_example()
-        await expert_team_example()
-        await custom_blueprint_example()
+        await dual_key_example()
+        await cli_example()
 
         print("\n" + "=" * 50)
         print("Examples complete")

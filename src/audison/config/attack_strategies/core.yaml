@@ -576,7 +576,43 @@ strategies:
     sandbox_level: process
     dangerous: false
 
-# 统计：共50条策略
+# 统计：共53条策略
 # OWASP Top 10: 5+4+3+3+3+3+2+2+2+2 = 29条
 # CWE Top 25: 3+2+2+2+2+2+2+2+2+2 = 21条
-# 总计：29 + 21 = 50条
+# 数据完整性：3条
+# 总计：29 + 21 + 3 = 53条
+
+  # ========== 数据完整性（data_integrity）==========
+
+  - id: cache_key_collision
+    category: data_integrity
+    severity: critical
+    description: "缓存键仅使用文件路径，未包含内容哈希或版本号，导致不同版本文件缓存互相覆盖"
+    input_template: "cache.set(filepath, data)  // 缺少 content_hash 或 etag"
+    expected: "缓存键应包含内容哈希（SHA-256）或版本号，确保不同内容不可互相覆盖"
+    applicable_to: ["code", "file_system", "cache"]
+    verification: static_analysis
+    sandbox_level: process
+    dangerous: false
+
+  - id: hash_input_incomplete
+    category: data_integrity
+    severity: high
+    description: "哈希计算输入不完整，仅对部分字段取哈希，未覆盖所有影响完整性的属性"
+    input_template: "digest = hash(data.payload)  // 遗漏了 data.metadata 和 data.version"
+    expected: "哈希输入应覆盖所有决定数据唯一性的字段，避免碰撞导致不同数据被认为相同"
+    applicable_to: ["code", "data_pipeline"]
+    verification: static_analysis
+    sandbox_level: process
+    dangerous: false
+
+  - id: etag_generation_flawed
+    category: data_integrity
+    severity: high
+    description: "ETag/校验和生成逻辑有缺陷，使用非确定性输入（如时间戳）导致同一数据产生不同校验值"
+    input_template: "etag = md5(data + str(time.time()))  // time.time() 每请求不同"
+    expected: "校验和应仅基于数据内容本身计算，不得使用非确定性输入"
+    applicable_to: ["code", "http", "cache"]
+    verification: static_analysis
+    sandbox_level: process
+    dangerous: false

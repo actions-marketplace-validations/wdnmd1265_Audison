@@ -123,6 +123,17 @@ def main():
     p_health.add_argument("--refresh", action="store_true", help="刷新健康度数据")
     p_health.add_argument("--json", action="store_true", help="输出 JSON 格式")
 
+    # ── scan ──
+    p_scan = sub.add_parser("scan", help="扫描目录进行维度4（数据完整性）实证验证")
+    p_scan.add_argument("path", help="要扫描的目录路径（如 . 或 D:/project）")
+    p_scan.add_argument("--js", action="store_true", help="同时扫描 JavaScript/TypeScript 文件")
+    p_scan.add_argument("-o", "--output", default=None, help="将完整报告保存为 Markdown 文件")
+
+    # ── diagnose ──
+    p_diagnose = sub.add_parser("diagnose", help="诊断模型池的配对潜力（基于SDT理论）")
+    p_diagnose.add_argument("--models", "-m", required=True, help="逗号分隔的模型列表")
+    p_diagnose.add_argument("--output", "-o", default=None, help="保存报告为JSON文件")
+
     args = parser.parse_args()
 
     # ── 命令分发 ──
@@ -135,6 +146,8 @@ def main():
         "trace": ("cmd_trace", "do_trace"),
         "health": ("cmd_health", "do_health"),
         "audit": ("cmd_audit", "do_audit"),
+        "scan": ("cmd_scan", "do_scan"),
+        "diagnose": ("cmd_diagnose", "cmd_diagnose"),
     }
 
     if args.command in dispatch:
