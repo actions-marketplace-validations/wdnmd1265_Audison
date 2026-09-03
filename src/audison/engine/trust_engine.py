@@ -1,8 +1,7 @@
 """
 信任引擎（Trust Engine）—— 克服 AI 幻觉的核心。
 
-独立的审查模块，不生成任何内容，只审查。
-可被 FlowArchitect 内部调用，也可独立对外使用。
+独立的审查模块，不生成任何内容，只审查。可直接独立使用或通过 API 集成。
 """
 
 import os
@@ -24,6 +23,7 @@ from .trust_report import (
 from .audit_context import AuditContext
 from .complexity_router import ComplexityRouter, RouteDecision
 from .local_checker import LocalChecker, LocalCheckResult
+from .empirical_verifier import EmpiricalVerifier
 from ..brains.brain_two import BrainTwo
 from ..brains.brain_opponent import BrainOpponent
 from ..brains.brain_blind import BrainBlind, BlindVerdict
@@ -337,15 +337,42 @@ class TrustEngine:
         
         # 第二步：反例攻防
         audit_log.append("→ 反例攻防...")
-        opponent_findings = await self._adversarial_test(requirement, ai_output)
+        opponent_findings, truncation_warning = await self._adversarial_test(requirement, ai_output)
         audit_log.append(f"  反例攻防完成，生成 {len(opponent_findings)} 个发现")
+        if truncation_warning:
+            audit_log.append(f"  {truncation_warning}")
+
+        # 第二步半：维度 4 实证验证（AST 级真伪判定）
+        verified_count = 0
+        for f in opponent_findings:
+            if f.area == "data_integrity":
+                verif_result = self._empirical_verify_single(f, requirement, ai_output)
+                if verif_result is not None:
+                    f.verification = {
+                        "verdict": verif_result.verdict,
+                        "file_path": verif_result.file_path,
+                        "function_name": verif_result.function_name,
+                        "func_params": verif_result.func_params,
+                        "hash_key_params": verif_result.hash_key_params,
+                        "uncovered_params": verif_result.uncovered_params,
+                        "claimed_missing": verif_result.claimed_missing,
+                        "matched_missing": verif_result.matched_missing,
+                        "details": verif_result.details,
+                    }
+                    verified_count += 1
+                    audit_log.append(
+                        f"  实证验证 [{verif_result.verdict}] "
+                        f"{verif_result.function_name} @ {verif_result.file_path}"
+                    )
+        if verified_count:
+            audit_log.append(f"  实证验证完成，共验证 {verified_count} 个维度 4 反例")
         
         # 第三步：合并 findings
         all_findings = self._merge_findings(arbiter_result, opponent_findings)
         
-        # 第四步：不确定性计算（三源合一）
+        # 第四步：不确定性计算（三源合一 + 截断警告）
         audit_log.append("→ 不确定性计算...")
-        uncertainty = self._compute_uncertainty(arbiter_result, opponent_findings)
+        uncertainty = self._compute_uncertainty(arbiter_result, opponent_findings, truncation_warning)
         audit_log.append(f"  不确定性: {len(uncertainty)} 项")
         
         # 第五步：计算置信度和结论
@@ -386,6 +413,7 @@ class TrustEngine:
             risks=self._extract_risks(all_findings),
             arbiters=arbiter_result.get("arbiter_votes", []),
             uncertainty=uncertainty,
+            truncation_warnings=[truncation_warning] if truncation_warning else [],
             evidence=evidence,
             audit_log=audit_log,
             blind_verdict=blind_verdict,
@@ -433,8 +461,8 @@ class TrustEngine:
                 "arbiter_votes": [],
             }
     
-    async def _adversarial_test(self, requirement: str, ai_output: str) -> List[Finding]:
-        """反例攻防测试。"""
+    async def _adversarial_test(self, requirement: str, ai_output: str) -> tuple[List[Finding], Optional[str]]:
+        """反例攻防测试。返回 (findings, truncation_warning)。"""
         try:
             # 构造 blueprint-like 对象给 BrainOpponent
             mock_blueprint = SimpleNamespace(
@@ -447,19 +475,77 @@ class TrustEngine:
             
             findings = []
             for example in result.get("adversarial_examples", []):
+                # 维度 4（data_integrity）统一 area 标识，便于下游实证验证
+                dim = example.get("dimension")
+                area = "data_integrity" if dim == 4 else example.get("type", "unknown")
                 findings.append(Finding(
-                    area=example.get("type", "unknown"),
+                    area=area,
                     severity=example.get("severity", "medium"),
                     description=example.get("scenario", ""),
                     source="opponent",
                     evidence=example.get("expected_break", ""),
                 ))
             
-            return findings
+            truncation_warning = result.get("truncation_warning")
+            return findings, truncation_warning
         except Exception as e:
             logger.error(f"反例攻防失败: {e}", exc_info=True)
-            return []
-    
+            return [], None
+
+    def _empirical_verify_single(
+        self,
+        finding: Finding,
+        requirement: str,
+        ai_output: str,
+    ):
+        """对单个维度 4 发现执行实证验证，返回 VerificationResult 或 None。"""
+        import re
+
+        verifier = EmpiricalVerifier()
+        description = finding.description
+
+        # 1. 尝试从描述中提取文件路径
+        file_path = ""
+        path_patterns = [
+            r"""(?:文件|file|路径|path|in)\s*[:：]?\s*['"]?([\w\-.:/\\]+\.py)['"]?""",
+            r"""['"]([\w\-.:/\\]+\.py)['"]""",
+            r"""([\w\-]+/[\w\-]+\.py)""",
+        ]
+        for pat in path_patterns:
+            m = re.search(pat, description, re.IGNORECASE)
+            if m:
+                file_path = m.group(1)
+                break
+
+        # 2. 尝试从描述中提取函数名
+        func_name = ""
+        func_patterns = [
+            r"""(?:函数|方法|function|method|def)\s*[:：]?\s*['"]?(\w+)['"]?""",
+            r"""(\w+)\(\)""",
+            r"""(\w+)\s*(?:函数|方法|function)""",
+        ]
+        for pat in func_patterns:
+            m = re.search(pat, description, re.IGNORECASE)
+            if m:
+                name = m.group(1)
+                if name.lower() not in ("def", "class", "import", "return", "self", "cls", "the", "and", "for", "not"):
+                    func_name = name
+                    break
+
+        if not file_path or not func_name:
+            logger.debug(
+                f"跳过实证验证：无法提取 file_path 或 func_name | "
+                f"file_path={file_path!r} func_name={func_name!r} | "
+                f"desc={description[:80]}"
+            )
+            return None
+
+        try:
+            return verifier.verify_from_finding(file_path, func_name, description)
+        except Exception as e:
+            logger.warning(f"实证验证异常: {e}")
+            return None
+
     def _merge_findings(
         self,
         arbiter_result: Dict[str, Any],
@@ -484,17 +570,19 @@ class TrustEngine:
         self,
         arbiter_result: Dict[str, Any],
         opponent_findings: List[Finding],
+        truncation_warning: Optional[str] = None,
     ) -> List[Uncertainty]:
         """
-        不确定性计算（三源合一）。
-        
-        三源：
+        不确定性计算（四源合一）。
+
+        四源：
         1. 审查员分歧（arbiter 意见不一致）
         2. 反例未覆盖（opponent 发现但 arbiter 没发现）
         3. 仲裁者自认不足（arbiter 的 suggestions）
+        4. 代码截断（部分内容未送入审查，存在遗漏风险）
         """
         uncertainty = []
-        
+
         # 源1：审查员分歧
         arbiter_votes = arbiter_result.get("arbiter_votes", [])
         if len(arbiter_votes) >= 2:
@@ -506,7 +594,7 @@ class TrustEngine:
                     severity="medium",
                     suggestion="建议人工审查，审查员意见不一致",
                 ))
-        
+
         # 源2：反例未覆盖
         high_severity_opponent = [f for f in opponent_findings if f.severity in ("high", "critical")]
         if high_severity_opponent:
@@ -516,7 +604,7 @@ class TrustEngine:
                 severity="high",
                 suggestion="建议人工验证反例场景是否成立",
             ))
-        
+
         # 源3：仲裁者自认不足
         for suggestion in arbiter_result.get("suggestions", []):
             uncertainty.append(Uncertainty(
@@ -525,7 +613,16 @@ class TrustEngine:
                 severity="low",
                 suggestion="建议参考仲裁者建议进行改进",
             ))
-        
+
+        # 源4：代码截断警告
+        if truncation_warning:
+            uncertainty.append(Uncertainty(
+                area="代码截断",
+                reason=truncation_warning,
+                severity="medium",
+                suggestion="部分代码未参与审查，建议缩小审查范围或分段审查以确保完整覆盖",
+            ))
+
         return uncertainty
     
     def _calculate_confidence(

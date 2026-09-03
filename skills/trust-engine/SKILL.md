@@ -38,17 +38,23 @@ curl -X POST http://localhost:8000/audit \
   }'
 ```
 
-### 作为 FlowArchitect 内部组件
+### 作为 MCP 工具
 
-```python
-from audison import FlowArchitect
-
-architect = FlowArchitect()
-result = await architect.execute("用户登录系统")
-
-# result 中自动包含 trust_report
-print(result["trust_report"])
+```json
+{
+  "mcpServers": {
+    "audison": {
+      "command": "uvx",
+      "args": ["audison[mcp]", "audison-mcp"],
+      "env": {
+        "OPENAI_API_KEY": "sk-..."
+      }
+    }
+  }
+}
 ```
+
+在 AI 助手中直接使用 `audit_code` 或 `audit_file` 工具，返回结构化 JSON 判定（PASS/REVIEW/REJECT），附置信度分数和加密证据链。
 
 ## 输出格式
 

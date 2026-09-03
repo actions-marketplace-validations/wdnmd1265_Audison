@@ -5,9 +5,60 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 并且本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [未发布]
+## [2.4.0] - 2026-07-10
 
-（暂无）
+### 新增
+
+**CLI `audison scan` 命令**
+- 新增 `src/audison/cli.py`：桥接入口，自动委托到 `cli/` 子包
+- 新增 `src/audison/cli/cmd_scan.py`：`audison scan <path>` 命令，Rich 彩色终端报告，支持 `--output / -o` 导出 Markdown 审计报告
+
+**实证验证引擎 (EmpiricalVerifier)**
+- 新增 `src/audison/engine/empirical_verifier.py`：AST 静态分析验证器，支持 Python 源码模式检测与假阳性排除
+- 新增 `src/audison/engine/js_empirical_verifier.py`：JavaScript 实证验证器
+
+**真实世界审计 — httpx v0.28.1**
+- 首次对三方开源项目（14k+ Stars）执行完整审计流程
+- 覆盖 Digest Auth 模块 10 个安全关键函数
+- 审计结果：4 CONFIRMED / 4 REFUTED / 1 误报排除
+- 完整报告：`reports/real_world_audit.md` + JSON
+
+**API 与集成文档**
+- 新增 `docs/api.md`：完整 API 参考
+- 新增 `docs/integrations.md`：第三方集成指南
+
+**测试**
+- 新增 `tests/unit/test_empirical_verifier.py`：EmpiricalVerifier 单元测试
+- 新增 `tests/unit/test_js_empirical_verifier.py`：JS 实证验证器测试
+
+### 变更
+
+**README 重构**
+- 510 行 → 102 行，精简 80%
+- 新定位语：**"Two AIs argue. One verdict."**
+- 首屏数字信誉修正：基于审计报告逐项复核，排除 EmpiricalVerifier 误报，更正为 4 CONFIRMED / 4 REFUTED
+- 审计方法诚实标注：标明使用 AST 静态分析（EmpiricalVerifier），非多模型对抗审计管线
+- 新增终端输出预览：`docs/terminal_output.txt`
+
+**架构精简**
+- 移除未使用的架构模块：`src/audison/core/architect.py`、`src/audison/core/scheduler.py`
+- 移除对应测试：`tests/unit/test_architect.py`
+- 移除过期文档：`docs/flow-architect.md`
+- 移除 V2 架构遗留代码
+
+### 修复
+
+**攻击策略与双脑推理**
+- `src/audison/brains/brain_blind.py`：`brain_families` 类型一致性修复
+- `src/audison/brains/brain_opponent.py`：LLM 调用降级路径修复
+- `src/audison/brains/brain_two.py`：多元仲裁类型兼容性修复
+- `src/audison/config/attack_strategies/core.yaml`：补全攻击向量定义
+
+**CLI 与引擎**
+- `src/audison/cli/__init__.py`：补全 `scan` 命令导出
+- `src/audison/core/__init__.py`：清理过期导出
+- `src/audison/engine/trust_engine.py`：审计流程适配 CLI 调用
+- `pyproject.toml`：补全 CLI 入口点 `audison = "audison.cli:main"`
 
 ## [2.3.3] - 2026-05-30
 

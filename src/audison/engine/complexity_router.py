@@ -9,6 +9,7 @@
 """
 
 import re
+import ast as ast_module
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 
@@ -21,6 +22,7 @@ class RouteDecision(BaseModel):
     confidence: float = Field(0.0, ge=0.0, le=1.0, description="路由置信度 (0-1)")
     recommended_model: str = Field("", description="推荐使用的模型")
     should_escalate: bool = Field(False, description="是否需要升级到更高层级")
+    loop_type: str = Field("UNKNOWN", description="Loop type classification (WHILE/FOR_NESTED/FOR_SIMPLE/LISTCOMP_ONLY/LINEAR)")
 
 
 # ── 默认路由规则 ──
@@ -59,6 +61,70 @@ _COMPLEX_BUSINESS_KEYWORDS = [
     "算法", "algorithm", "机器学习", "machine learning", "深度学习",
     "deep learning", "神经网络", "neural network",
 ]
+
+
+class LoopTypeClassifier(ast_module.NodeVisitor):
+    """AST-based loop type classifier for intelligent routing.
+    
+    Classifies code into five mutually exclusive categories
+    (priority: WHILE > FOR_NESTED > FOR_SIMPLE > LISTCOMP_ONLY > LINEAR).
+    Used to determine whether single-model or multi-model audit is appropriate.
+    """
+    def __init__(self):
+        self.loop_type = "LINEAR"
+        self._seen_for = False
+        self._seen_nested_for = False
+        self._seen_while = False
+        self._seen_listcomp = False
+    
+    def visit_While(self, node):
+        self._seen_while = True
+        self.generic_visit(node)
+    
+    def visit_For(self, node):
+        if self._seen_for:
+            self._seen_nested_for = True
+        self._seen_for = True
+        self.generic_visit(node)
+    
+    def visit_ListComp(self, node):
+        self._seen_listcomp = True
+        self.generic_visit(node)
+    
+    def visit_SetComp(self, node):
+        self._seen_listcomp = True
+        self.generic_visit(node)
+    
+    def visit_DictComp(self, node):
+        self._seen_listcomp = True
+        self.generic_visit(node)
+    
+    def visit_GeneratorExp(self, node):
+        self._seen_listcomp = True
+        self.generic_visit(node)
+    
+    def classify(self) -> str:
+        if self._seen_while:
+            return "WHILE"
+        elif self._seen_nested_for:
+            return "FOR_NESTED"
+        elif self._seen_for:
+            return "FOR_SIMPLE"
+        elif self._seen_listcomp:
+            return "LISTCOMP_ONLY"
+        else:
+            return "LINEAR"
+
+
+def classify_loop_type(code: str) -> str:
+    """Classify the dominant loop type in the given code."""
+    try:
+        tree = ast_module.parse(code)
+        classifier = LoopTypeClassifier()
+        classifier.visit(tree)
+        return classifier.classify()
+    except SyntaxError:
+        return "LINEAR"
 
 
 class ComplexityRouter:
@@ -165,23 +231,41 @@ class ComplexityRouter:
         total_length = len(requirement) + len(ai_output)
         combined_text = f"{requirement}\n{ai_output}"
 
-        # ── Tier 1 判定 ──
-        tier1_decision = self._evaluate_tier1(requirement, ai_output, total_length, combined_text)
-        if tier1_decision:
-            return tier1_decision
+        # ── Tier evaluation ──
+        decision = self._evaluate_tier1(requirement, ai_output, total_length, combined_text)
+        if decision is None:
+            decision = self._evaluate_tier2(requirement, ai_output, total_length, combined_text)
+        if decision is None:
+            decision = self._evaluate_tier3(requirement, ai_output, total_length, combined_text)
+        if decision is None:
+            decision = self._evaluate_tier4(requirement, ai_output, total_length, combined_text)
 
-        # ── Tier 2 判定 ──
-        tier2_decision = self._evaluate_tier2(requirement, ai_output, total_length, combined_text)
-        if tier2_decision:
-            return tier2_decision
+        # ── Loop-type-aware tier adjustment ──
+        loop_type = classify_loop_type(ai_output)
 
-        # ── Tier 3 判定（默认） ──
-        tier3_decision = self._evaluate_tier3(requirement, ai_output, total_length, combined_text)
-        if tier3_decision:
-            return tier3_decision
+        if loop_type == "LISTCOMP_ONLY":
+            # LISTCOMP has 41.7% impossible rate — single-model insufficient, escalate to at least Tier3
+            if decision.tier < 3:
+                decision = RouteDecision(
+                    tier=3,
+                    reason=f"{decision.reason}；[Loop-aware] LISTCOMP_ONLY forced upgrade (41.7% impossible rate, multi-model required)",
+                    confidence=0.75,
+                    recommended_model=self.TIER_MODELS[3],
+                    should_escalate=False,
+                )
+        elif loop_type in ("LINEAR", "FOR_NESTED", "WHILE"):
+            # Single-model performs well on these loop types — downgrade from Tier3+ to Tier2
+            if decision.tier >= 3:
+                decision = RouteDecision(
+                    tier=2,
+                    reason=f"{decision.reason}；[Loop-aware] Downgraded to Tier2 ({loop_type}: single-model sufficient based on empirical data)",
+                    confidence=0.75,
+                    recommended_model=self.TIER_MODELS[2],
+                    should_escalate=False,
+                )
 
-        # ── Tier 4 判定（占位符） ──
-        return self._evaluate_tier4(requirement, ai_output, total_length, combined_text)
+        decision.loop_type = loop_type
+        return decision
 
     def _evaluate_tier1(
         self, requirement: str, ai_output: str, total_length: int, combined_text: str

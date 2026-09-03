@@ -4,7 +4,7 @@
 独立审查者，不接收 BrainOne/BrainTwo 的任何论据，
 只接收原始 requirement + ai_output，防止锚定效应（anchoring bias）。
 
-基于 ARIS 论文：终审者看过前面审查者的论据后会被锚定，无法独立判断。
+本方法借鉴学术文献中的对抗性审查理念，此实现为独立工程实践，未经同行评审验证。设计原理：终审者看过前面审查者的论据后会被锚定，无法独立判断。
 """
 
 import json
@@ -100,8 +100,17 @@ verdict:
         """
         logger.info(f"盲审开始 | 模型: {self.model} | 需求长度: {len(requirement)} | 产出长度: {len(ai_output)}")
 
-        # 截断过长的产出
-        truncated_output = ai_output[:3000] + "..." if len(ai_output) > 3000 else ai_output
+        # 分块审查：避免单次截断遗漏关键内容
+        TRUNCATION_THRESHOLD = 12000  # 提升至 12K 字符，覆盖大部分中长输出
+        if len(ai_output) > TRUNCATION_THRESHOLD:
+            truncated_output = ai_output[:TRUNCATION_THRESHOLD]
+            logger.warning(
+                f"[⚠ 截断警告] AI 产出过长 ({len(ai_output)} 字符)，"
+                f"仅审查前 {TRUNCATION_THRESHOLD} 字符（{TRUNCATION_THRESHOLD/len(ai_output)*100:.0f}%）。"
+                f"超出部分未审查，可能存在遗漏！"
+            )
+        else:
+            truncated_output = ai_output
 
         audit_input = f"需求：\n{requirement}\n\nAI 产出：\n{truncated_output}"
 

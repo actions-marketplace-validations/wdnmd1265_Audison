@@ -1,0 +1,30 @@
+┌─────────────────────────────────────────┐
+│ Audison Scan — 维度4 数据完整性实证验证 │
+│ 目标目录: D:\HANAKO\audison             │
+└─────────────────────────────────────────┘
+          扫描摘要           
+ 扫描目录  D:\HANAKO\audison 
+ 发现文件  104 个源文件      
+ 审查函数  83 个             
+ 语言支持  Python            
+                           维度4 判定结果                            
+ 判定       数量  说明                                               
+ CONFIRMED     0  实证确认：函数参数未被哈希/缓存键完全覆盖 → 真阳性 
+ REFUTED      43  实证驳回：模型声称缺失的参数实际已被覆盖 → 假阳性  
+ UNCERTAIN    40  无法判定：缺少足够信息或无法解析 → 需人工复核      
+
+REFUTED — 实证驳回（假阳性过滤）
+  1. D:\HANAKO\audison\examples\basic_usage.py:single_key_example → 参数均被覆盖
+  2. D:\HANAKO\audison\examples\basic_usage.py:dual_key_example → 参数均被覆盖
+  3. D:\HANAKO\audison\examples\basic_usage_20260709_101223_986.py:single_key_example → 参数均被覆盖
+  4. D:\HANAKO\audison\examples\basic_usage_20260709_101223_986.py:dual_key_example → 参数均被覆盖
+  5. D:\HANAKO\audison\samples\p1_fastapi_like\cache_utils.py:hash_route → 参数 host, methods, path 均被覆盖
+  6. D:\HANAKO\audison\samples\p2_httpx_like\client_cache.py:cache_get → 参数 headers, url 均被覆盖
+  7. D:\HANAKO\audison\samples\p2_httpx_like\client_cache.py:hash_request → 参数 body, method, url 均被覆盖
+  8. D:\HANAKO\audison\samples\p3_rich_like\terminal_cache.py:hash_export → 参数 height, text, width 均被覆盖
+  9. D:\HANAKO\audison\scripts\action_entry.py:collect_api_keys → 参数均被覆盖
+  10. D:\HANAKO\audison\src\audison\core\cache.py:_generate_key → 参数 data 均被覆盖
+  ... 还有 33 项，使用 --output 保存完整报告
+2026-07-10 22:18:24.392 | INFO     | audison.engine.empirical_verifier:verify:196 - EmpiricalVerifier: single_key_example → REFUTED | params=[] | hash_keys=[] | uncovered=[]
+（内容由AI生成，仅供参考）
+（内容由AI生成，仅供参考）

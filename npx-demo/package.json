@@ -1,7 +1,7 @@
 {
   "name": "audison-demo",
-  "version": "2.3.0",
-  "description": "Instant demo of Audison - dual-model adversarial code audit. See it in 3 seconds.",
+  "version": "3.0.0",
+  "description": "Instantly experience dual-AI adversarial code review — catches bugs standard reviewers miss. No API key needed.",
   "keywords": [
     "ai",
     "code-audit",

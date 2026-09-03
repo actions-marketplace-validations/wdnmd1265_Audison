@@ -1,0 +1,371 @@
+[
+  {
+    "project": "p1_fastapi_like",
+    "file": "cache_utils.py",
+    "function": "get_from_cache",
+    "claim": [
+      "namespace"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "key",
+      "namespace"
+    ],
+    "hash_key_params": [
+      "key"
+    ],
+    "uncovered": [
+      "namespace"
+    ],
+    "matched": [
+      "namespace"
+    ],
+    "unmatched": [],
+    "details": "函数 'get_from_cache' 接收 2 个参数(key, namespace)，但哈希/缓存键仅使用了(key）。以下参数未被覆盖: namespace。其中与模型声称匹配: namespace。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "cache_utils.py",
+    "function": "set_cache",
+    "claim": [
+      "namespace"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "key",
+      "value",
+      "namespace"
+    ],
+    "hash_key_params": [
+      "key"
+    ],
+    "uncovered": [
+      "value",
+      "namespace"
+    ],
+    "matched": [
+      "namespace"
+    ],
+    "unmatched": [],
+    "details": "函数 'set_cache' 接收 3 个参数(key, value, namespace)，但哈希/缓存键仅使用了(key）。以下参数未被覆盖: value, namespace。其中与模型声称匹配: namespace。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "cache_utils.py",
+    "function": "compute_etag",
+    "claim": [
+      "content_type"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "content",
+      "content_type"
+    ],
+    "hash_key_params": [
+      "content"
+    ],
+    "uncovered": [
+      "content_type"
+    ],
+    "matched": [
+      "content_type"
+    ],
+    "unmatched": [],
+    "details": "函数 'compute_etag' 接收 2 个参数(content, content_type)，但哈希/缓存键仅使用了(content）。以下参数未被覆盖: content_type。其中与模型声称匹配: content_type。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "cache_utils.py",
+    "function": "file_fingerprint",
+    "claim": [
+      "etag"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "file_path",
+      "etag"
+    ],
+    "hash_key_params": [
+      "file_path"
+    ],
+    "uncovered": [
+      "etag"
+    ],
+    "matched": [
+      "etag"
+    ],
+    "unmatched": [],
+    "details": "函数 'file_fingerprint' 接收 2 个参数(file_path, etag)，但哈希/缓存键仅使用了(file_path）。以下参数未被覆盖: etag。其中与模型声称匹配: etag。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "cache_utils.py",
+    "function": "hash_route",
+    "claim": [
+      "host",
+      "methods"
+    ],
+    "verdict": "REFUTED",
+    "func_params": [
+      "path",
+      "methods",
+      "host"
+    ],
+    "hash_key_params": [
+      "host",
+      "methods",
+      "path"
+    ],
+    "uncovered": [],
+    "matched": [],
+    "unmatched": [],
+    "details": "函数 'hash_route' 的所有 3 个参数(path, methods, host) 均已出现在哈希/缓存键构造中。模型声称缺失的字段 (host, methods) 实际已被覆盖，该反例为假阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "signing.py",
+    "function": "sign_response",
+    "claim": [
+      "status_code"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "body",
+      "status_code",
+      "timestamp"
+    ],
+    "hash_key_params": [],
+    "uncovered": [
+      "body",
+      "status_code",
+      "timestamp"
+    ],
+    "matched": [
+      "status_code"
+    ],
+    "unmatched": [],
+    "details": "函数 'sign_response' 接收 3 个参数(body, status_code, timestamp)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: body, status_code, timestamp。其中与模型声称匹配: status_code。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p1_fastapi_like",
+    "file": "signing.py",
+    "function": "verify_hash",
+    "claim": [
+      "algorithm"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "data",
+      "expected",
+      "algorithm"
+    ],
+    "hash_key_params": [
+      "data"
+    ],
+    "uncovered": [
+      "expected",
+      "algorithm"
+    ],
+    "matched": [
+      "algorithm"
+    ],
+    "unmatched": [],
+    "details": "函数 'verify_hash' 接收 3 个参数(data, expected, algorithm)，但哈希/缓存键仅使用了(data）。以下参数未被覆盖: expected, algorithm。其中与模型声称匹配: algorithm。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p2_httpx_like",
+    "file": "client_cache.py",
+    "function": "make_cache_key",
+    "claim": [
+      "headers"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "url",
+      "headers"
+    ],
+    "hash_key_params": [
+      "url"
+    ],
+    "uncovered": [
+      "headers"
+    ],
+    "matched": [
+      "headers"
+    ],
+    "unmatched": [],
+    "details": "函数 'make_cache_key' 接收 2 个参数(url, headers)，但哈希/缓存键仅使用了(url）。以下参数未被覆盖: headers。其中与模型声称匹配: headers。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p2_httpx_like",
+    "file": "client_cache.py",
+    "function": "hash_request",
+    "claim": [
+      "method"
+    ],
+    "verdict": "REFUTED",
+    "func_params": [
+      "url",
+      "method",
+      "body"
+    ],
+    "hash_key_params": [
+      "body",
+      "method",
+      "url"
+    ],
+    "uncovered": [],
+    "matched": [],
+    "unmatched": [],
+    "details": "函数 'hash_request' 的所有 3 个参数(url, method, body) 均已出现在哈希/缓存键构造中。模型声称缺失的字段 (method) 实际已被覆盖，该反例为假阳性。"
+  },
+  {
+    "project": "p2_httpx_like",
+    "file": "client_cache.py",
+    "function": "sign_cookie",
+    "claim": [
+      "salt"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "value",
+      "salt"
+    ],
+    "hash_key_params": [
+      "value"
+    ],
+    "uncovered": [
+      "salt"
+    ],
+    "matched": [
+      "salt"
+    ],
+    "unmatched": [],
+    "details": "函数 'sign_cookie' 接收 2 个参数(value, salt)，但哈希/缓存键仅使用了(value）。以下参数未被覆盖: salt。其中与模型声称匹配: salt。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p2_httpx_like",
+    "file": "client_cache.py",
+    "function": "store_cookie",
+    "claim": [
+      "domain"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "name",
+      "value",
+      "domain"
+    ],
+    "hash_key_params": [
+      "name",
+      "value"
+    ],
+    "uncovered": [
+      "domain"
+    ],
+    "matched": [
+      "domain"
+    ],
+    "unmatched": [],
+    "details": "函数 'store_cookie' 接收 3 个参数(name, value, domain)，但哈希/缓存键仅使用了(name, value）。以下参数未被覆盖: domain。其中与模型声称匹配: domain。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p3_rich_like",
+    "file": "terminal_cache.py",
+    "function": "cache_render",
+    "claim": [
+      "style"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "segments",
+      "style"
+    ],
+    "hash_key_params": [
+      "segments"
+    ],
+    "uncovered": [
+      "style"
+    ],
+    "matched": [
+      "style"
+    ],
+    "unmatched": [],
+    "details": "函数 'cache_render' 接收 2 个参数(segments, style)，但哈希/缓存键仅使用了(segments）。以下参数未被覆盖: style。其中与模型声称匹配: style。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p3_rich_like",
+    "file": "terminal_cache.py",
+    "function": "hash_export",
+    "claim": [
+      "height"
+    ],
+    "verdict": "REFUTED",
+    "func_params": [
+      "text",
+      "width",
+      "height"
+    ],
+    "hash_key_params": [
+      "height",
+      "text",
+      "width"
+    ],
+    "uncovered": [],
+    "matched": [],
+    "unmatched": [],
+    "details": "函数 'hash_export' 的所有 3 个参数(text, width, height) 均已出现在哈希/缓存键构造中。模型声称缺失的字段 (height) 实际已被覆盖，该反例为假阳性。"
+  },
+  {
+    "project": "p3_rich_like",
+    "file": "terminal_cache.py",
+    "function": "export_svg",
+    "claim": [
+      "encoding"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "text",
+      "width",
+      "height",
+      "encoding"
+    ],
+    "hash_key_params": [
+      "height",
+      "text",
+      "width"
+    ],
+    "uncovered": [
+      "encoding"
+    ],
+    "matched": [
+      "encoding"
+    ],
+    "unmatched": [],
+    "details": "函数 'export_svg' 接收 4 个参数(text, width, height, encoding)，但哈希/缓存键仅使用了(height, text, width）。以下参数未被覆盖: encoding。其中与模型声称匹配: encoding。该反例被实证确认为真阳性。"
+  },
+  {
+    "project": "p3_rich_like",
+    "file": "terminal_cache.py",
+    "function": "get_style",
+    "claim": [
+      "theme"
+    ],
+    "verdict": "CONFIRMED",
+    "func_params": [
+      "name",
+      "theme"
+    ],
+    "hash_key_params": [
+      "name"
+    ],
+    "uncovered": [
+      "theme"
+    ],
+    "matched": [
+      "theme"
+    ],
+    "unmatched": [],
+    "details": "函数 'get_style' 接收 2 个参数(name, theme)，但哈希/缓存键仅使用了(name）。以下参数未被覆盖: theme。其中与模型声称匹配: theme。该反例被实证确认为真阳性。"
+  }
+]

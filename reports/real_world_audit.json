@@ -1,0 +1,205 @@
+{
+  "audison_version": "2.3.4",
+  "verifier": "EmpiricalVerifier v1.0",
+  "target_project": "httpx",
+  "target_version": "0.28.1",
+  "target_source": "https://github.com/encode/httpx",
+  "audit_date": "2026-07-10T21:26:41.047077",
+  "dimension": "dimension_4_data_integrity",
+  "total_functions_audited": 10,
+  "summary": {
+    "confirmed": 5,
+    "refuted": 4,
+    "uncertain": 1
+  },
+  "findings": [
+    {
+      "verdict": "UNCERTAIN",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_auth.py",
+      "function_name": "_build_auth_header",
+      "func_params": [
+        "username",
+        "password"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "username",
+        "password"
+      ],
+      "claimed_missing": [
+        "request",
+        "challenge"
+      ],
+      "matched_missing": [],
+      "unmatched_missing": [
+        "request",
+        "challenge"
+      ],
+      "details": "函数 '_build_auth_header' 存在未被哈希覆盖的参数(username, password)，但与模型声称缺失的字段(request, challenge) 不匹配。可能是不同层面的问题或模型指代模糊。"
+    },
+    {
+      "verdict": "CONFIRMED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_auth.py",
+      "function_name": "_get_client_nonce",
+      "func_params": [
+        "nonce_count",
+        "nonce"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "nonce_count",
+        "nonce"
+      ],
+      "claimed_missing": [
+        "nonce_count",
+        "nonce"
+      ],
+      "matched_missing": [
+        "nonce_count",
+        "nonce"
+      ],
+      "unmatched_missing": [],
+      "details": "函数 '_get_client_nonce' 接收 2 个参数(nonce_count, nonce)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: nonce_count, nonce。其中与模型声称匹配: nonce_count, nonce。该反例被实证确认为真阳性。"
+    },
+    {
+      "verdict": "CONFIRMED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_auth.py",
+      "function_name": "_parse_challenge",
+      "func_params": [
+        "request",
+        "response",
+        "auth_header"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "request",
+        "response",
+        "auth_header"
+      ],
+      "claimed_missing": [
+        "auth_header"
+      ],
+      "matched_missing": [
+        "auth_header"
+      ],
+      "unmatched_missing": [],
+      "details": "函数 '_parse_challenge' 接收 3 个参数(request, response, auth_header)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: request, response, auth_header。其中与模型声称匹配: auth_header。该反例被实证确认为真阳性。"
+    },
+    {
+      "verdict": "CONFIRMED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_auth.py",
+      "function_name": "_get_header_value",
+      "func_params": [
+        "header_fields"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "header_fields"
+      ],
+      "claimed_missing": [
+        "header_fields"
+      ],
+      "matched_missing": [
+        "header_fields"
+      ],
+      "unmatched_missing": [],
+      "details": "函数 '_get_header_value' 接收 1 个参数(header_fields)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: header_fields。其中与模型声称匹配: header_fields。该反例被实证确认为真阳性。"
+    },
+    {
+      "verdict": "CONFIRMED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_models.py",
+      "function_name": "_normalize_header_key",
+      "func_params": [
+        "key",
+        "encoding"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "key",
+        "encoding"
+      ],
+      "claimed_missing": [
+        "key",
+        "encoding"
+      ],
+      "matched_missing": [
+        "key",
+        "encoding"
+      ],
+      "unmatched_missing": [],
+      "details": "函数 '_normalize_header_key' 接收 2 个参数(key, encoding)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: key, encoding。其中与模型声称匹配: key, encoding。该反例被实证确认为真阳性。"
+    },
+    {
+      "verdict": "REFUTED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_models.py",
+      "function_name": "keys",
+      "func_params": [],
+      "hash_key_params": [],
+      "uncovered_params": [],
+      "claimed_missing": [],
+      "matched_missing": [],
+      "unmatched_missing": [],
+      "details": "函数 'keys' 的所有 0 个参数() 均已出现在哈希/缓存键构造中。模型声称缺失的字段 () 实际已被覆盖，该反例为假阳性。"
+    },
+    {
+      "verdict": "REFUTED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_urls.py",
+      "function_name": "__hash__",
+      "func_params": [],
+      "hash_key_params": [],
+      "uncovered_params": [],
+      "claimed_missing": [],
+      "matched_missing": [],
+      "unmatched_missing": [],
+      "details": "函数 '__hash__' 的所有 0 个参数() 均已出现在哈希/缓存键构造中。模型声称缺失的字段 () 实际已被覆盖，该反例为假阳性。"
+    },
+    {
+      "verdict": "CONFIRMED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_auth.py",
+      "function_name": "_resolve_qop",
+      "func_params": [
+        "qop",
+        "request"
+      ],
+      "hash_key_params": [],
+      "uncovered_params": [
+        "qop",
+        "request"
+      ],
+      "claimed_missing": [
+        "qop",
+        "request"
+      ],
+      "matched_missing": [
+        "qop",
+        "request"
+      ],
+      "unmatched_missing": [],
+      "details": "函数 '_resolve_qop' 接收 2 个参数(qop, request)，但哈希/缓存键仅使用了(<无>）。以下参数未被覆盖: qop, request。其中与模型声称匹配: qop, request。该反例被实证确认为真阳性。"
+    },
+    {
+      "verdict": "REFUTED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_urls.py",
+      "function_name": "keys",
+      "func_params": [],
+      "hash_key_params": [],
+      "uncovered_params": [],
+      "claimed_missing": [],
+      "matched_missing": [],
+      "unmatched_missing": [],
+      "details": "函数 'keys' 的所有 0 个参数() 均已出现在哈希/缓存键构造中。模型声称缺失的字段 () 实际已被覆盖，该反例为假阳性。"
+    },
+    {
+      "verdict": "REFUTED",
+      "file_path": "D:\\Program Files\\Tencent\\Marvis\\MarvisAgent\\1.0.1100.310\\runtime\\python311\\Lib\\site-packages\\httpx\\_utils.py",
+      "function_name": "__hash__",
+      "func_params": [],
+      "hash_key_params": [],
+      "uncovered_params": [],
+      "claimed_missing": [],
+      "matched_missing": [],
+      "unmatched_missing": [],
+      "details": "函数 '__hash__' 的所有 0 个参数() 均已出现在哈希/缓存键构造中。模型声称缺失的字段 () 实际已被覆盖，该反例为假阳性。"
+    }
+  ]
+}

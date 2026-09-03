@@ -4,11 +4,10 @@ Audison — 开源 AI 输出审查中间件。
 TrustEngine：独立审计层，可被任何 AI Agent 集成。
 """
 
-__version__ = "2.3.4"
+__version__ = "2.4.0"
 __author__ = "盛鑫"
 __email__ = "2709786902@qq.com"
 
-from .core.architect import FlowArchitect
 from .engine import (
     TrustEngine,
     TrustReport,
@@ -22,7 +21,6 @@ from .engine import (
 )
 
 __all__ = [
-    "FlowArchitect",
     "TrustEngine",
     "TrustReport",
     "Finding",

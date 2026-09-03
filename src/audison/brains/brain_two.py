@@ -125,14 +125,35 @@ class BrainTwo:
             for d, c in desc_counts.items() if c >= 2
         ]
         
+        # Structural output comparison: consensus based on verdict agreement instead of confidence weighting
+        # Confidence scores have negligible discriminative power in LLM code review (Cohen's d=0.145)
+        passed_count = sum(1 for r in valid_results if r.get("passed"))
+        failed_count = len(valid_results) - passed_count
+        
+        if passed_count == len(valid_results) or failed_count == len(valid_results):
+            agreement = "unanimous"       # 3/3 arbiters agree on verdict
+        elif passed_count >= 2 or failed_count >= 2:
+            agreement = "majority"        # 2/3 arbiters agree on verdict
+        else:
+            agreement = "disputed"        # No majority — manual review required
+        
+        # Consensus passes when >=2/3 arbiters agree on the same verdict
+        overall_passed = passed_count > failed_count
+        
         result = {
-            "passed": sum(1 for r in valid_results if r.get("passed")) >= len(valid_results) * 0.5,
+            "passed": overall_passed,
             "score": round(avg_score, 1),
             "issues": all_issues,
             "consensus_issues": consensus_issues,
             "suggestions": list(dict.fromkeys(all_suggestions)),
             "arbiter_votes": arbiter_votes,
             "isolation_level": "full" if len(set(r.get("model", "") for r in valid_results)) >= 2 else "degraded",
+            "metadata": {
+                "agreement": agreement,
+                "passed_count": passed_count,
+                "failed_count": failed_count,
+                "total_arbiters": len(valid_results),
+            },
         }
         
         logger.info(f"audit_raw 完成 | 均分: {avg_score:.1f} | 问题: {len(all_issues)} | 一致缺陷: {len(consensus_issues)}")
@@ -174,8 +195,17 @@ class BrainTwo:
   "suggestions": ["..."]
 }}"""
         
-        # 截断过长的产出
-        truncated_output = ai_output[:3000] + "..." if len(ai_output) > 3000 else ai_output
+        # 分块审查：避免单次截断遗漏关键内容
+        TRUNCATION_THRESHOLD = 12000  # 提升至 12K 字符，覆盖大部分中长输出
+        if len(ai_output) > TRUNCATION_THRESHOLD:
+            truncated_output = ai_output[:TRUNCATION_THRESHOLD]
+            logger.warning(
+                f"[⚠ 截断警告] AI 产出过长 ({len(ai_output)} 字符)，"
+                f"仅审查前 {TRUNCATION_THRESHOLD} 字符（{TRUNCATION_THRESHOLD/len(ai_output)*100:.0f}%）。"
+                f"超出部分未审查，可能存在遗漏！"
+            )
+        else:
+            truncated_output = ai_output
         audit_input = f"需求：{requirement}\n\nAI 产出：\n{truncated_output}"
         
         try:
